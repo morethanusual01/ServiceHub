@@ -1,26 +1,34 @@
-import { Card, Avatar, Tooltip, Popover, PopoverTrigger, PopoverContent, Input, Button, Divider } from "@heroui/react";
-import { MapPinIcon, UserIcon } from "@heroicons/react/24/solid";
-import { useRef, useState, useEffect } from "react";
+'use client';
 
-type TicketType = 'professional' | 'maintenance';
+import {
+  Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  Avatar,
+  Card,
+  Input,
+  Button
+} from "@heroui/react";
+import { 
+  MapPinIcon,
+  UserIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  ChatBubbleLeftIcon,
+  BuildingOfficeIcon
+} from "@heroicons/react/24/solid";
+import { useState, useRef, useEffect } from "react";
+import { Ticket } from "./types";
 
-interface Ticket {
-  id: string;
-  ticketNumber: string;
-  subject: string;
-  partner: string;
-  endCustomer: string;
-  serialNumber?: string;
-  contract?: string;
-  workType?: string;
-  location: string;
-  assignedTo?: string;
-  type: TicketType;
+interface RequestCardProps {
+  ticket: Ticket;
 }
 
-export const TicketCard = ({ ticket }: { ticket: Ticket }) => {
+export const RequestCard = ({ ticket }: RequestCardProps) => {
   const locationRef = useRef<HTMLSpanElement>(null);
   const [isLocationTruncated, setIsLocationTruncated] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     const checkTruncation = () => {
@@ -63,11 +71,29 @@ export const TicketCard = ({ ticket }: { ticket: Ticket }) => {
   };
 
   return (
-    <Card className="p-3 bg-white shadow-none border-none hover:bg-default-100 group">
+    <Card className={`p-3 bg-white border border-default-100 hover:border-default-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] hover:shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] transition-all group ${isExpanded ? 'border-default-200 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)]' : ''}`}>
       <div className="flex flex-col gap-2">
-        {/* Header - Ticket number and assignee */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-default-600">{ticket.ticketNumber}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-default-600">{ticket.ticketNumber}</span>
+            {ticket.unreadMessages && (
+              <Tooltip 
+                content={
+                  ticket.unreadMessages.readBy ? 
+                    `Read by: ${ticket.unreadMessages.readBy.join(', ')}` : 
+                    'Unread messages'
+                }
+                size="sm" 
+                delay={0} 
+                closeDelay={0}
+              >
+                <div className={`flex items-center gap-1 ${ticket.unreadMessages.readBy ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'} text-xs px-2 py-0.5 rounded-full`}>
+                  <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
+                  <span>{ticket.unreadMessages.count}</span>
+                </div>
+              </Tooltip>
+            )}
+          </div>
           {ticket.assignedTo ? (
             <Tooltip content={ticket.assignedTo} size="sm" delay={0} closeDelay={0}>
               <Avatar
@@ -80,7 +106,10 @@ export const TicketCard = ({ ticket }: { ticket: Ticket }) => {
               />
             </Tooltip>
           ) : (
-            <Popover placement="bottom-end">
+            <Popover 
+              placement="bottom-end" 
+              onOpenChange={(open) => setIsExpanded(open)}
+            >
               <PopoverTrigger>
                 <div>
                   <Tooltip content="Assign this request" size="sm" delay={0} closeDelay={0}>
@@ -113,67 +142,86 @@ export const TicketCard = ({ ticket }: { ticket: Ticket }) => {
           )}
         </div>
 
-        {/* Subject */}
         <div className="text-[14px] font-medium">{ticket.subject}</div>
 
-        {/* Ticket Info */}
+        {/* Status Indicators */}
+        {(ticket.slaAcknowledgment || ticket.vendorOwned) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {ticket.slaAcknowledgment?.warning && (
+              <Tooltip content="SLA Acknowledge Warning Alert" size="sm" delay={0} closeDelay={0}>
+                <div className="flex items-center gap-1 bg-warning-50 text-warning-600 text-xs px-2 py-0.5 rounded-full">
+                  <ClockIcon className="w-3.5 h-3.5" />
+                  <span>SLA Warning</span>
+                </div>
+              </Tooltip>
+            )}
+            {ticket.slaAcknowledgment?.breach && (
+              <Tooltip content="SLA Acknowledge Breach Alert" size="sm" delay={0} closeDelay={0}>
+                <div className="flex items-center gap-1 bg-danger-50 text-danger-600 text-xs px-2 py-0.5 rounded-full">
+                  <ExclamationTriangleIcon className="w-3.5 h-3.5" />
+                  <span>SLA Breach</span>
+                </div>
+              </Tooltip>
+            )}
+            {ticket.vendorOwned && (
+              <div className="flex items-center gap-1 bg-secondary-50 text-secondary-600 text-xs px-2 py-0.5 rounded-full">
+                <BuildingOfficeIcon className="w-3.5 h-3.5" />
+                <span>Vendor Owned</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {ticket.type === 'maintenance' ? (
           <div className="flex flex-col gap-1">
-            {/* Default visible fields */}
             <div className="flex items-center gap-1 text-xs">
               <span className="text-default-400">Serial:</span>
-              <span className="font-medium text-default-700">{ticket.serialNumber}</span>
+              <span className="font-medium text-default-600">{ticket.serialNumber}</span>
             </div>
             <div className="flex items-center gap-1 text-xs">
               <span className="text-default-400">Contract:</span>
-              <span className="font-medium text-default-700">{ticket.contract}</span>
+              <span className="font-medium text-default-600">{ticket.contract}</span>
             </div>
-            
-            {/* Hidden fields that show on hover */}
-            <div className="hidden group-hover:flex flex-col gap-1">
+            <div className="flex flex-col gap-1 max-h-0 group-hover:max-h-[200px] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]" style={{ maxHeight: isExpanded ? '200px' : undefined }}>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Partner:</span>
-                <span className="font-medium text-default-700">{ticket.partner}</span>
+                <span className="font-medium text-default-600">{ticket.partner}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">End Customer:</span>
-                <span className="font-medium text-default-700">{ticket.endCustomer}</span>
+                <span className="font-medium text-default-600">{ticket.endCustomer}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Vendor:</span>
-                <span className="font-medium text-default-700">{ticket.partner}</span>
+                <span className="font-medium text-default-600">{ticket.partner}</span>
               </div>
             </div>
           </div>
         ) : (
           <div className="flex flex-col gap-1">
-            {/* Default visible field */}
             <div className="flex items-center gap-1 text-xs">
               <span className="text-default-400">Work Type:</span>
-              <span className="font-medium text-default-700">{ticket.workType}</span>
+              <span className="font-medium text-default-600">{ticket.workType}</span>
             </div>
-            
-            {/* Hidden fields that show on hover */}
-            <div className="hidden group-hover:flex flex-col gap-1">
+            <div className="flex flex-col gap-1 max-h-0 group-hover:max-h-[200px] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]" style={{ maxHeight: isExpanded ? '200px' : undefined }}>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Partner:</span>
-                <span className="font-medium text-default-700">{ticket.partner}</span>
+                <span className="font-medium text-default-600">{ticket.partner}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">End Customer:</span>
-                <span className="font-medium text-default-700">{ticket.endCustomer}</span>
+                <span className="font-medium text-default-600">{ticket.endCustomer}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Vendor:</span>
-                <span className="font-medium text-default-700">{ticket.partner}</span>
+                <span className="font-medium text-default-600">{ticket.partner}</span>
               </div>
             </div>
           </div>
         )}
 
-        <div className="h-[1px] w-full bg-divider my-1" />
+        <div className="h-[1px] w-full bg-default-100 my-1" />
 
-        {/* Location */}
         <div 
           className="flex items-center gap-2 cursor-pointer text-xs"
           onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.location)}`, '_blank')}
@@ -182,10 +230,10 @@ export const TicketCard = ({ ticket }: { ticket: Ticket }) => {
           <div className="flex-1 min-w-0">
             {isLocationTruncated ? (
               <Tooltip content={ticket.location} size="sm" delay={0} closeDelay={0}>
-                <span ref={locationRef} className="truncate font-medium block">{ticket.location}</span>
+                <span ref={locationRef} className="truncate font-medium text-default-600 block">{ticket.location}</span>
               </Tooltip>
             ) : (
-              <span ref={locationRef} className="truncate font-medium block">{ticket.location}</span>
+              <span ref={locationRef} className="truncate font-medium text-default-600 block">{ticket.location}</span>
             )}
           </div>
         </div>
