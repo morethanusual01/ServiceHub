@@ -38,6 +38,7 @@ interface ClientRequestsTableProps {
 export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = false }: ClientRequestsTableProps) => {
   const [selectedStatus, setSelectedStatus] = useState<Status>("new");
   const [showTooltip, setShowTooltip] = useState<Record<string, boolean>>({});
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleTextRef = (id: string) => (element: HTMLSpanElement | null) => {
     if (element) {
@@ -94,21 +95,21 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
   const showMaintenanceColumns = filteredTickets.some(t => t.type === 'maintenance');
 
   const columns = [
-    { key: "ticket", label: "TICKET", width: 120 },
-    { key: "alerts", label: "ALERTS", width: 150 },
-    { key: "subject", label: "SUBJECT", width: 300 },
+    { key: "ticket", label: "TICKET", width: 180 },
+    { key: "assignedTo", label: "ASSIGNEE", width: 96, className: "text-center" },
+    { key: "subject", label: "SUBJECT", width: 250 },
     { key: "requestType", label: "REQUEST TYPE", width: 180 },
-    { key: "partner", label: "PARTNER", width: 150 },
+    { key: "partner", label: "PARTNER", width: 180 },
     { key: "endCustomer", label: "END CUSTOMER", width: 180 },
     { key: "workType", label: "WORK TYPE", width: 150 },
     { key: "serialNumber", label: "SERIAL NUMBER", width: 150 },
     { key: "vendor", label: "VENDOR", width: 150 },
     { key: "location", label: "LOCATION", width: 200 },
-    { key: "assignedTo", label: "ASSIGNED TO", width: 120 },
+    { key: "requestedStart", label: "REQUESTED START", width: 150 },
   ];
 
   const renderValue = (value: string | undefined) => {
-    return value || "—"; // Using an em dash for empty values
+    return value || ""; // Return empty string for empty values
   };
 
   return (
@@ -139,137 +140,198 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
         </Tabs>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <Table
-          aria-label="Client requests table"
-          layout="fixed"
-          classNames={{
-            base: "min-w-[1200px]",
-            th: "bg-default-100 text-default-800 text-xs font-semibold h-10 border-b border-divider",
-            td: "h-[60px] text-sm border-b border-divider",
-            tr: "hover:bg-default-100 data-[selected=true]:bg-default-100"
-          }}
+      <div className="w-full">
+        <div
+          ref={scrollRef}
+          className="w-full border border-divider bg-white overflow-x-auto rounded-lg"
         >
-          <TableHeader>
-            {columns.map(column => (
-              <TableColumn key={column.key} width={column.width}>{column.label}</TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {filteredTickets.map((ticket) => (
-              <TableRow key={ticket.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span>{ticket.ticketNumber}</span>
-                    {ticket.unreadMessages && (
-                      <Tooltip 
-                        content={
-                          ticket.unreadMessages.readBy ? 
-                            `Read by: ${ticket.unreadMessages.readBy.join(', ')}` : 
-                            'Unread messages'
-                        }
-                        size="sm" 
-                        delay={0} 
-                        closeDelay={0}
-                      >
-                        <Chip 
+          <Table
+            aria-label="Client requests table"
+            layout="fixed"
+            removeWrapper
+            radius="none"
+            classNames={{
+              base: "w-full border-collapse min-w-[1200px]",
+              thead: "[&>tr:last-child]:hidden",
+              th: [
+                "bg-default-100 text-default-800 text-xs font-semibold h-10",
+                "border-b border-r",
+                "last:border-r-0",
+                "rounded-none",
+                "last:rounded-br-none",
+                "first:rounded-bl-none"
+              ].join(" "),
+              td: [
+                "h-[60px] text-sm",
+                "border-b border-r",
+                "last:border-r-0",
+                "rounded-none"
+              ].join(" "),
+              tr: [
+                "hover:bg-default-100 data-[selected=true]:bg-default-100",
+                "[&:last-child>td]:border-b-0"
+              ].join(" ")
+            }}
+          >
+            <TableHeader>
+              {columns.map(column => (
+                <TableColumn 
+                  key={column.key} 
+                  width={column.width}
+                  className={column.key === "assignedTo" ? "text-center" : ""}
+                >
+                  {column.label}
+                </TableColumn>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {filteredTickets.map((ticket) => (
+                <TableRow key={ticket.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="hover:underline cursor-pointer">{ticket.ticketNumber}</span>
+                      {ticket.slaAcknowledgment?.breach && (
+                        <Tooltip content="SLA Acknowledge Breach Alert" size="sm">
+                          <Chip
+                            startContent={<ExclamationTriangleIcon className="w-4 h-4" />}
+                            variant="flat"
+                            color="danger"
+                            size="sm"
+                            classNames={{
+                              base: "max-w-fit",
+                              content: "hidden"
+                            }}
+                          />
+                        </Tooltip>
+                      )}
+                      {ticket.slaAcknowledgment?.warning && (
+                        <Tooltip content="SLA Acknowledge Warning Alert" size="sm">
+                          <Chip
+                            startContent={<ClockIcon className="w-4 h-4" />}
+                            variant="flat"
+                            color="warning"
+                            size="sm"
+                            classNames={{
+                              base: "max-w-fit",
+                              content: "hidden"
+                            }}
+                          />
+                        </Tooltip>
+                      )}
+                      {ticket.vendorOwned && (
+                        <Tooltip content="Vendor Owned" size="sm">
+                          <Chip
+                            startContent={<BuildingOfficeIcon className="w-4 h-4" />}
+                            variant="flat"
+                            color="secondary"
+                            size="sm"
+                            classNames={{
+                              base: "max-w-fit",
+                              content: "hidden"
+                            }}
+                          />
+                        </Tooltip>
+                      )}
+                      {ticket.unreadMessages && (
+                        <Tooltip 
+                          content={
+                            ticket.unreadMessages.readBy ? 
+                              `Read by: ${ticket.unreadMessages.readBy.join(', ')}` : 
+                              'Unread messages'
+                          }
                           size="sm" 
-                          variant="flat" 
-                          color={ticket.unreadMessages.readBy ? 'success' : 'danger'}
-                          startContent={<div className="ml-0.5"><ChatBubbleLeftIcon className="w-3.5 h-3.5" /></div>}
-                          classNames={{
-                            base: "max-w-fit",
-                            content: "font-medium"
-                          }}
+                          delay={0} 
+                          closeDelay={0}
                         >
-                          {ticket.unreadMessages.count}
-                        </Chip>
+                          <Chip 
+                            size="sm" 
+                            variant="flat" 
+                            color={ticket.unreadMessages.readBy ? 'success' : 'danger'}
+                            startContent={<div className="ml-0.5"><ChatBubbleLeftIcon className="w-3.5 h-3.5" /></div>}
+                            classNames={{
+                              base: "max-w-fit",
+                              content: "font-medium"
+                            }}
+                          >
+                            {ticket.unreadMessages.count}
+                          </Chip>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {ticket.ticketNumber === "INC01005" ? (
+                      <Tooltip content="Sarah Anderson" size="sm">
+                        <div className="flex justify-center">
+                          <Avatar name={getInitials("Sarah Anderson")} size="sm" className={`w-8 h-8 text-white ${getAvatarColor("Sarah Anderson")}`} classNames={{name: "text-tiny font-medium"}} />
+                        </div>
                       </Tooltip>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {ticket.slaAcknowledgment?.warning && (
-                      <Tooltip content="SLA Acknowledge Warning Alert" size="sm">
-                        <Chip size="sm" variant="flat" color="warning" startContent={<ClockIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
-                          SLA Warning
-                        </Chip>
+                    ) : ticket.assignedTo ? (
+                      <Tooltip content={ticket.assignedTo} size="sm">
+                        <div className="flex justify-center">
+                          <Avatar name={getInitials(ticket.assignedTo)} size="sm" className={`w-8 h-8 text-white ${getAvatarColor(ticket.assignedTo)}`} classNames={{name: "text-tiny font-medium"}} />
+                        </div>
                       </Tooltip>
-                    )}
-                    {ticket.slaAcknowledgment?.breach && (
-                      <Tooltip content="SLA Acknowledge Breach Alert" size="sm">
-                        <Chip size="sm" variant="flat" color="danger" startContent={<ExclamationTriangleIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
-                          SLA Breach
-                        </Chip>
-                      </Tooltip>
-                    )}
-                    {ticket.vendorOwned && (
-                      <Chip size="sm" variant="flat" color="secondary" startContent={<BuildingOfficeIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
-                        Vendor Owned
-                      </Chip>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="block truncate max-w-[260px]">{ticket.subject}</span>
-                </TableCell>
-                <TableCell>
-                  <Chip 
-                    size="sm" 
-                    variant="flat" 
-                    color={ticket.type === 'professional' ? 'primary' : 'secondary'} 
-                    classNames={{
-                      base: "max-w-fit", 
-                      content: "font-medium"
-                    }}
-                  >
-                    {ticket.type === 'professional' ? 'Professional Services' : 'Maintenance'}
-                  </Chip>
-                </TableCell>
-                <TableCell>{ticket.type === 'maintenance' ? renderValue(ticket.partner) : "—"}</TableCell>
-                <TableCell>{renderValue(ticket.endCustomer)}</TableCell>
-                <TableCell>{ticket.type === 'professional' ? renderValue(ticket.workType) : "—"}</TableCell>
-                <TableCell>{ticket.type === 'maintenance' ? renderValue(ticket.serialNumber) : "—"}</TableCell>
-                <TableCell>Cisco Systems</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm hover:text-primary transition-colors cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.location)}`, '_blank')}>
-                    <MapPinIcon className="w-4 h-4 text-default-500 flex-shrink-0" />
-                    <Tooltip content={ticket.location} size="sm" showArrow>
-                      <span className="truncate max-w-[160px]">{ticket.location}</span>
-                    </Tooltip>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {ticket.assignedTo ? (
-                    <Tooltip content={ticket.assignedTo} size="sm">
-                      <Avatar name={getInitials(ticket.assignedTo)} size="sm" className={`w-8 h-8 text-white ${getAvatarColor(ticket.assignedTo)}`} classNames={{name: "text-tiny font-medium"}} />
-                    </Tooltip>
-                  ) : (
-                    <Popover placement="bottom-end">
-                      <PopoverTrigger>
-                        <div>
-                          <Tooltip content="Assign this request" size="sm">
-                            <div className="w-8 h-8 rounded-full border-2 border-dotted border-[#DFE1E6] flex items-center justify-center hover:border-[#C1C7D0] transition-colors cursor-pointer">
-                              <UserIcon className="w-4 h-4 text-[#6B778C]" />
+                    ) : (
+                      <div className="flex justify-center">
+                        <Popover placement="bottom-end">
+                          <PopoverTrigger>
+                            <div>
+                              <Tooltip content="Assign this request" size="sm">
+                                <div className="w-8 h-8 rounded-full border-2 border-dotted border-[#DFE1E6] flex items-center justify-center hover:border-[#C1C7D0] transition-colors cursor-pointer">
+                                  <UserIcon className="w-4 h-4 text-[#6B778C]" />
+                                </div>
+                              </Tooltip>
                             </div>
-                          </Tooltip>
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="py-3 px-2">
-                        <div className="flex items-center gap-2 w-[300px]">
-                          <Input placeholder="Name or email" size="sm" className="flex-1 h-9" startContent={<UserIcon className="w-4 h-4 text-[#6B778C] flex-shrink-0" />} classNames={{base: "max-w-full", input: "text-[14px] text-[#42526E] placeholder:text-[#6B778C]", inputWrapper: "h-9"}} />
-                          <span className="text-[14px] text-[#6B778C] whitespace-nowrap">or</span>
-                          <Button size="sm" variant="flat" className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap">Assign to Me</Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                          </PopoverTrigger>
+                          <PopoverContent className="py-3 px-2">
+                            <div className="flex items-center gap-2 w-[300px]">
+                              <Input placeholder="Name or email" size="sm" className="flex-1 h-9" startContent={<UserIcon className="w-4 h-4 text-[#6B778C] flex-shrink-0" />} classNames={{base: "max-w-full", input: "text-[14px] text-[#42526E] placeholder:text-[#6B778C]", inputWrapper: "h-9"}} />
+                              <span className="text-[14px] text-[#6B778C] whitespace-nowrap">or</span>
+                              <Button size="sm" variant="flat" className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap">Assign to Me</Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="block truncate max-w-[260px]">{ticket.subject}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      size="sm" 
+                      variant="flat" 
+                      color={ticket.type === 'professional' ? 'primary' : 'secondary'} 
+                      classNames={{
+                        base: "max-w-fit", 
+                        content: "font-medium"
+                      }}
+                    >
+                      {ticket.type === 'professional' ? 'Professional Services' : 'Maintenance'}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>{ticket.type === 'maintenance' ? renderValue(ticket.partner) : ""}</TableCell>
+                  <TableCell>{renderValue(ticket.endCustomer)}</TableCell>
+                  <TableCell>{ticket.type === 'professional' ? renderValue(ticket.workType) : ""}</TableCell>
+                  <TableCell>{ticket.type === 'maintenance' ? renderValue(ticket.serialNumber) : ""}</TableCell>
+                  <TableCell>Cisco Systems</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm hover:text-primary transition-colors cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.location)}`, '_blank')}>
+                      <MapPinIcon className="w-4 h-4 text-default-500 flex-shrink-0" />
+                      <Tooltip content={ticket.location} size="sm" showArrow>
+                        <span className="truncate max-w-[160px]">{ticket.location}</span>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {ticket.type === 'professional' ? "4/12/25 at 5PM" : ""}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

@@ -44,6 +44,24 @@ const SAMPLE_TICKETS: Ticket[] = [
     }
   },
   {
+    id: '7',
+    ticketNumber: 'INC01007',
+    subject: 'Router Hardware Replacement',
+    partner: 'Network Solutions',
+    endCustomer: 'Finance Corp',
+    serialNumber: 'RTR-789012',
+    contract: 'GOLD-2024',
+    location: '123 Wall Street, New York, NY 10005',
+    type: 'maintenance',
+    status: 'new',
+    slaAcknowledgment: {
+      warning: true
+    },
+    unreadMessages: {
+      count: 1
+    }
+  },
+  {
     id: '2',
     ticketNumber: 'INC01002',
     subject: 'Server Maintenance',
@@ -58,6 +76,22 @@ const SAMPLE_TICKETS: Ticket[] = [
     unreadMessages: {
       count: 3,
       readBy: ['Jane Smith', 'Mike Johnson']
+    }
+  },
+  {
+    id: '8',
+    ticketNumber: 'INC01008',
+    subject: 'Switch Firmware Update',
+    partner: 'Network Plus',
+    endCustomer: 'Tech Solutions',
+    serialNumber: 'SWT-456789',
+    contract: 'PLATINUM-2024',
+    location: '789 Tech Avenue, San Jose, CA 95110',
+    type: 'maintenance',
+    status: 'new',
+    vendorOwned: true,
+    slaAcknowledgment: {
+      breach: true
     }
   },
   {
