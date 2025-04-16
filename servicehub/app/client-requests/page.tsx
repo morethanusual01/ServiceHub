@@ -25,6 +25,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { RequestCard } from "../components/tickets/RequestCard";
+import { ClientRequestsTable } from "@/components/tables/ClientRequestsTable";
 import { Status, Ticket } from "../components/tickets/types";
 
 const SAMPLE_TICKETS: Ticket[] = [
@@ -70,7 +71,10 @@ const SAMPLE_TICKETS: Ticket[] = [
     assignedTo: 'Jane Smith',
     type: 'professional',
     status: 'triage',
-    vendorOwned: true
+    vendorOwned: true,
+    slaAcknowledgment: {
+      breach: true
+    }
   },
   {
     id: '4',
@@ -97,6 +101,9 @@ const SAMPLE_TICKETS: Ticket[] = [
     status: 'new',
     unreadMessages: {
       count: 2
+    },
+    slaAcknowledgment: {
+      warning: true
     }
   },
   {
@@ -281,8 +288,8 @@ export default function ClientRequestsPage() {
         <Divider className="w-full" />
       </div>
 
-      {/* Board View - Scrollable Content */}
-      {isBoardView && (
+      {/* Content Section */}
+      {isBoardView ? (
         <div className="flex-1 px-6 py-4 bg-default-100/50 overflow-y-auto min-h-0">
           <div className="flex gap-6">
             {columns.map((status) => (
@@ -323,6 +330,14 @@ export default function ClientRequestsPage() {
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        <div className="flex-1 px-6 py-4 overflow-y-auto min-h-0">
+          <ClientRequestsTable 
+            tickets={SAMPLE_TICKETS}
+            showOnHold={showOnHold}
+            showClosed={showClosed}
+          />
         </div>
       )}
     </div>

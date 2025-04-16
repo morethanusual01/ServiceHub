@@ -8,7 +8,8 @@ import {
   Avatar,
   Card,
   Input,
-  Button
+  Button,
+  Chip
 } from "@heroui/react";
 import { 
   MapPinIcon,
@@ -87,10 +88,18 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
                 delay={0} 
                 closeDelay={0}
               >
-                <div className={`flex items-center gap-1 ${ticket.unreadMessages.readBy ? 'bg-success-50 text-success-600' : 'bg-danger-50 text-danger-600'} text-xs px-2 py-0.5 rounded-full`}>
-                  <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
-                  <span>{ticket.unreadMessages.count}</span>
-                </div>
+                <Chip 
+                  size="sm" 
+                  variant="flat" 
+                  color={ticket.unreadMessages.readBy ? 'success' : 'danger'}
+                  startContent={<div className="ml-0.5"><ChatBubbleLeftIcon className="w-3.5 h-3.5" /></div>}
+                  classNames={{
+                    base: "max-w-fit",
+                    content: "font-medium"
+                  }}
+                >
+                  {ticket.unreadMessages.count}
+                </Chip>
               </Tooltip>
             )}
           </div>
@@ -148,26 +157,23 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
         {(ticket.slaAcknowledgment || ticket.vendorOwned) && (
           <div className="flex items-center gap-2 flex-wrap">
             {ticket.slaAcknowledgment?.warning && (
-              <Tooltip content="SLA Acknowledge Warning Alert" size="sm" delay={0} closeDelay={0}>
-                <div className="flex items-center gap-1 bg-warning-50 text-warning-600 text-xs px-2 py-0.5 rounded-full">
-                  <ClockIcon className="w-3.5 h-3.5" />
-                  <span>SLA Warning</span>
-                </div>
+              <Tooltip content="SLA Acknowledge Warning Alert" size="sm">
+                <Chip size="sm" variant="flat" color="warning" startContent={<ClockIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
+                  SLA Warning
+                </Chip>
               </Tooltip>
             )}
             {ticket.slaAcknowledgment?.breach && (
-              <Tooltip content="SLA Acknowledge Breach Alert" size="sm" delay={0} closeDelay={0}>
-                <div className="flex items-center gap-1 bg-danger-50 text-danger-600 text-xs px-2 py-0.5 rounded-full">
-                  <ExclamationTriangleIcon className="w-3.5 h-3.5" />
-                  <span>SLA Breach</span>
-                </div>
+              <Tooltip content="SLA Acknowledge Breach Alert" size="sm">
+                <Chip size="sm" variant="flat" color="danger" startContent={<ExclamationTriangleIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
+                  SLA Breach
+                </Chip>
               </Tooltip>
             )}
             {ticket.vendorOwned && (
-              <div className="flex items-center gap-1 bg-secondary-50 text-secondary-600 text-xs px-2 py-0.5 rounded-full">
-                <BuildingOfficeIcon className="w-3.5 h-3.5" />
-                <span>Vendor Owned</span>
-              </div>
+              <Chip size="sm" variant="flat" color="secondary" startContent={<BuildingOfficeIcon className="w-3.5 h-3.5" />} classNames={{content: "font-medium"}}>
+                Vendor Owned
+              </Chip>
             )}
           </div>
         )}
@@ -193,7 +199,7 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Vendor:</span>
-                <span className="font-medium text-default-600">{ticket.partner}</span>
+                <span className="font-medium text-default-600">Cisco Systems</span>
               </div>
             </div>
           </div>
@@ -205,16 +211,12 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
             </div>
             <div className="flex flex-col gap-1 max-h-0 group-hover:max-h-[200px] overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]" style={{ maxHeight: isExpanded ? '200px' : undefined }}>
               <div className="flex items-center gap-1 text-xs">
-                <span className="text-default-400">Partner:</span>
-                <span className="font-medium text-default-600">{ticket.partner}</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">End Customer:</span>
                 <span className="font-medium text-default-600">{ticket.endCustomer}</span>
               </div>
               <div className="flex items-center gap-1 text-xs">
                 <span className="text-default-400">Vendor:</span>
-                <span className="font-medium text-default-600">{ticket.partner}</span>
+                <span className="font-medium text-default-600">Cisco Systems</span>
               </div>
             </div>
           </div>
