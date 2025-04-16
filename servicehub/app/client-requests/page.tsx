@@ -179,6 +179,16 @@ export default function ClientRequestsPage() {
     'closed': 'Closed'
   };
 
+  // Mapping for Export button text based on status - needed for board view tooltips
+  const exportButtonTitles: Record<Status, string> = {
+    'new': 'Export New Requests',
+    'on-hold': 'Export Requests On Hold',
+    'triage': 'Export Requests in Triage',
+    'in-progress': 'Export Requests in Progress',
+    'review': 'Export Requests in Review',
+    'closed': 'Export Closed Requests'
+  };
+
   // Group tickets by status
   const ticketsByStatus = SAMPLE_TICKETS.reduce((acc, ticket) => {
     if (!acc[ticket.status]) {
@@ -336,20 +346,39 @@ export default function ClientRequestsPage() {
                         {(ticketsByStatus[status]?.length || 0)}
                       </span>
                     </div>
-                    {status === 'new' && (
-                      <Tooltip content="New Request" size="sm" delay={0} closeDelay={0}>
+                    {/* Container for right-aligned header icons */}
+                    <div className="flex items-center">
+                      {/* Export Button (Always shown) */}
+                      <Tooltip content={exportButtonTitles[status]} size="sm" delay={0} closeDelay={0}>
                         <div>
                           <Button 
                             isIconOnly 
                             variant="light"
                             size="sm"
                             radius="sm"
+                            className="h-8 w-8" // Adjust size slightly if needed
                           >
-                            <PlusIcon className="w-5 h-5 text-default-600" />
+                            <ArrowDownTrayIcon className="w-5 h-5 text-default-600" />
                           </Button>
                         </div>
                       </Tooltip>
-                    )}
+                      {/* New Request Button (Only for 'new' status) */}
+                      {status === 'new' && (
+                        <Tooltip content="New Request" size="sm" delay={0} closeDelay={0}>
+                          <div>
+                            <Button 
+                              isIconOnly 
+                              variant="light"
+                              size="sm"
+                              radius="sm"
+                              className="h-8 w-8" // Adjust size slightly if needed
+                            >
+                              <PlusIcon className="w-5 h-5 text-default-600" />
+                            </Button>
+                          </div>
+                        </Tooltip>
+                      )}
+                    </div>
                   </h2>
                 </div>
                 {ticketsByStatus[status]?.length > 0 ? (

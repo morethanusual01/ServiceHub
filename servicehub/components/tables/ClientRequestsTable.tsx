@@ -372,7 +372,7 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
                     <TableCell>{ticket.type === 'maintenance' ? renderValue(ticket.serialNumber) : ""}</TableCell>
                     <TableCell>Cisco Systems</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-sm hover:text-primary transition-colors cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.location)}`, '_blank')}>
+                      <div className="flex items-center gap-2 text-sm transition-colors cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ticket.location)}`, '_blank')}>
                         <MapPinIcon className="w-4 h-4 text-default-500 flex-shrink-0" />
                         <Tooltip content={ticket.location} size="sm" showArrow>
                           <span className="truncate max-w-[160px]">{ticket.location}</span>
