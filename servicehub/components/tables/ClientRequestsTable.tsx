@@ -24,7 +24,7 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
   ChatBubbleLeftIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
 } from "@heroicons/react/24/solid";
 import { Status, Ticket } from "@/app/components/tickets/types";
 import { useState, useRef } from "react";

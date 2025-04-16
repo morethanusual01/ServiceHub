@@ -234,7 +234,7 @@ export default function ClientRequestsPage() {
               </Button>
 
               <div className="flex items-center gap-2">
-                <Tooltip content="Export" size="sm" delay={0} closeDelay={0}>
+                <Tooltip content="Export All Client Requests" size="sm" delay={0} closeDelay={0}>
                   <div>
                     <Button 
                       isIconOnly 
