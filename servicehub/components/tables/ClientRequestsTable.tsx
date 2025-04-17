@@ -34,9 +34,10 @@ interface ClientRequestsTableProps {
   tickets: Ticket[];
   showOnHold?: boolean;
   showClosed?: boolean;
+  onAssign: (ticketId: string, assignee: string) => void;
 }
 
-export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = false }: ClientRequestsTableProps) => {
+export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = false, onAssign }: ClientRequestsTableProps) => {
   const [selectedStatus, setSelectedStatus] = useState<Status>("new");
   const [showTooltip, setShowTooltip] = useState<Record<string, boolean>>({});
   const [assigningTicketId, setAssigningTicketId] = useState<string | null>(null);
@@ -240,6 +241,7 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="hover:underline cursor-pointer">{ticket.ticketNumber}</span>
+                        
                         {ticket.slaAcknowledgment?.breach && (
                           <Tooltip content="SLA Acknowledge Breach Alert" size="sm">
                             <Chip
@@ -317,7 +319,10 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
                           </div>
                         </Tooltip>
                       ) : ticket.assignedTo ? (
-                        <Tooltip content={ticket.assignedTo} size="sm">
+                        <Tooltip 
+                          content={ticket.assignedTo === 'MC' ? 'Mike Certoma' : ticket.assignedTo}
+                          size="sm"
+                        >
                           <div className="flex justify-center">
                             <Avatar name={getInitials(ticket.assignedTo)} size="sm" className={`w-8 h-8 text-white ${getAvatarColor(ticket.assignedTo)}`} classNames={{name: "text-tiny font-medium"}} />
                           </div>
@@ -343,7 +348,16 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
                               <div className="flex items-center gap-2 w-[300px]">
                                 <Input placeholder="Name or email" size="sm" className="flex-1 h-9" startContent={<UserIcon className="w-4 h-4 text-[#6B778C] flex-shrink-0" />} classNames={{base: "max-w-full", input: "text-[14px] text-[#42526E] placeholder:text-[#6B778C]", inputWrapper: "h-9"}} />
                                 <span className="text-[14px] text-[#6B778C] whitespace-nowrap">or</span>
-                                <Button size="sm" variant="flat" className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap">Assign to Me</Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="flat" 
+                                  className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap"
+                                  onClick={() => {
+                                    onAssign(ticket.id, "MC");
+                                  }}
+                                >
+                                  Assign to Me
+                                </Button>
                               </div>
                             </PopoverContent>
                           </Popover>

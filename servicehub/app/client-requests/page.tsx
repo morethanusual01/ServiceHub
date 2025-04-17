@@ -160,6 +160,13 @@ export default function ClientRequestsPage() {
   const [isBoardView, setIsBoardView] = useState(true);
   const [showClosed, setShowClosed] = useState(false);
   const [showOnHold, setShowOnHold] = useState(false);
+  const [tickets, setTickets] = useState<Ticket[]>(SAMPLE_TICKETS);
+
+  const displayedTickets = tickets.filter(ticket => {
+    if (!showOnHold && ticket.status === 'on-hold') return false;
+    if (!showClosed && ticket.status === 'closed') return false;
+    return true;
+  });
 
   const columns: Status[] = [
     'new',
@@ -179,7 +186,6 @@ export default function ClientRequestsPage() {
     'closed': 'Closed'
   };
 
-  // Mapping for Export button text based on status - needed for board view tooltips
   const exportButtonTitles: Record<Status, string> = {
     'new': 'Export New Requests',
     'on-hold': 'Export Requests On Hold',
@@ -189,8 +195,7 @@ export default function ClientRequestsPage() {
     'closed': 'Export Closed Requests'
   };
 
-  // Group tickets by status
-  const ticketsByStatus = SAMPLE_TICKETS.reduce((acc, ticket) => {
+  const ticketsByStatus = displayedTickets.reduce((acc, ticket) => {
     if (!acc[ticket.status]) {
       acc[ticket.status] = [];
     }
@@ -198,11 +203,17 @@ export default function ClientRequestsPage() {
     return acc;
   }, {} as Record<Status, Ticket[]>);
 
+  const handleAssign = (ticketId: string, assignee: string) => {
+    setTickets(currentTickets => 
+      currentTickets.map(ticket => 
+        ticket.id === ticketId ? { ...ticket, assignedTo: assignee } : ticket
+      )
+    );
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Header Section */}
       <div className="flex-none">
-        {/* Title and Breadcrumbs */}
         <div className="flex items-center justify-between px-6 h-[57px]">
           <h1 className="text-xl font-semibold">Client Requests</h1>
           <Breadcrumbs size="sm">
@@ -215,7 +226,6 @@ export default function ClientRequestsPage() {
 
         <Divider className="w-full" />
 
-        {/* Search and Actions */}
         <div className="px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="w-[200px]">
@@ -332,7 +342,6 @@ export default function ClientRequestsPage() {
         <Divider className="w-full" />
       </div>
 
-      {/* Content Section */}
       {isBoardView ? (
         <div className="flex-1 px-6 py-4 bg-default-100/50 overflow-y-auto min-h-0">
           <div className="flex gap-6">
@@ -346,9 +355,7 @@ export default function ClientRequestsPage() {
                         {(ticketsByStatus[status]?.length || 0)}
                       </span>
                     </div>
-                    {/* Container for right-aligned header icons */}
                     <div className="flex items-center">
-                      {/* Export Button (Always shown) */}
                       <Tooltip content={exportButtonTitles[status]} size="sm" delay={0} closeDelay={0}>
                         <div>
                           <Button 
@@ -356,13 +363,12 @@ export default function ClientRequestsPage() {
                             variant="light"
                             size="sm"
                             radius="sm"
-                            className="h-8 w-8" // Adjust size slightly if needed
+                            className="h-8 w-8"
                           >
                             <ArrowDownTrayIcon className="w-5 h-5 text-default-600" />
                           </Button>
                         </div>
                       </Tooltip>
-                      {/* New Request Button (Only for 'new' status) */}
                       {status === 'new' && (
                         <Tooltip content="New Request" size="sm" delay={0} closeDelay={0}>
                           <div>
@@ -371,7 +377,7 @@ export default function ClientRequestsPage() {
                               variant="light"
                               size="sm"
                               radius="sm"
-                              className="h-8 w-8" // Adjust size slightly if needed
+                              className="h-8 w-8"
                             >
                               <PlusIcon className="w-5 h-5 text-default-600" />
                             </Button>
@@ -384,7 +390,11 @@ export default function ClientRequestsPage() {
                 {ticketsByStatus[status]?.length > 0 ? (
                   <div className="flex flex-col gap-2">
                     {ticketsByStatus[status]?.map((ticket) => (
-                      <RequestCard key={ticket.id} ticket={ticket} />
+                      <RequestCard 
+                        key={ticket.id} 
+                        ticket={ticket} 
+                        onAssign={handleAssign}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -397,9 +407,10 @@ export default function ClientRequestsPage() {
       ) : (
         <div className="flex-1 px-6 py-4 overflow-y-auto min-h-0">
           <ClientRequestsTable 
-            tickets={SAMPLE_TICKETS}
+            tickets={displayedTickets}
             showOnHold={showOnHold}
             showClosed={showClosed}
+            onAssign={handleAssign}
           />
         </div>
       )}

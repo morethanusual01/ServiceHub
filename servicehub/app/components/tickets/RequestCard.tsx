@@ -17,19 +17,22 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
   ChatBubbleLeftIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  LinkIcon
 } from "@heroicons/react/24/solid";
 import { useState, useRef, useEffect } from "react";
 import { Ticket } from "./types";
 
 interface RequestCardProps {
   ticket: Ticket;
+  onAssign: (ticketId: string, assignee: string) => void;
 }
 
-export const RequestCard = ({ ticket }: RequestCardProps) => {
+export const RequestCard = ({ ticket, onAssign }: RequestCardProps) => {
   const locationRef = useRef<HTMLSpanElement>(null);
   const [isLocationTruncated, setIsLocationTruncated] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     const checkTruncation = () => {
@@ -76,7 +79,41 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-default-600">{ticket.ticketNumber}</span>
+            <div className="inline-flex items-center group/link">
+              <span className="text-xs font-medium text-default-600 hover:underline cursor-pointer">{ticket.ticketNumber}</span>
+              <div className="ml-1 hidden group-hover/link:inline-block relative">
+                <Tooltip 
+                  content={isCopied ? "Copied" : "Copy Link"}
+                  size="sm" 
+                  delay={isCopied ? 0 : 500}
+                  key={isCopied ? 'copied-tip' : 'copy-tip'}
+                >
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    className="w-5 h-5 min-w-0 data-[hover=true]:bg-default-200"
+                    aria-label="Copy ticket link"
+                    onClick={() => {
+                      const ticketUrl = `${window.location.origin}/client-requests/${ticket.id}`;
+                      navigator.clipboard.writeText(ticketUrl)
+                        .then(() => {
+                          setIsCopied(true);
+                          console.log('Ticket link copied!');
+                          setTimeout(() => {
+                            setIsCopied(false);
+                          }, 2000);
+                        })
+                        .catch(err => {
+                          console.error('Failed to copy ticket link: ', err);
+                        });
+                    }}
+                  >
+                    <LinkIcon className="w-4 h-4 text-default-500" />
+                  </Button>
+                </Tooltip>
+              </div>
+            </div>
             {ticket.unreadMessages && (
               <Tooltip 
                 content={
@@ -104,7 +141,12 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
             )}
           </div>
           {ticket.assignedTo ? (
-            <Tooltip content={ticket.assignedTo} size="sm" delay={0} closeDelay={0}>
+            <Tooltip 
+              content={ticket.assignedTo === 'MC' ? 'Mike Certoma' : ticket.assignedTo}
+              size="sm" 
+              delay={0} 
+              closeDelay={0}
+            >
               <Avatar
                 name={getInitials(ticket.assignedTo)}
                 size="sm"
@@ -128,7 +170,7 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
                   </Tooltip>
                 </div>
               </PopoverTrigger>
-              <PopoverContent className="py-3 px-2">
+              <PopoverContent className="py-3 px-3">
                 <div className="flex items-center gap-2 w-[300px]">
                   <Input
                     placeholder="Name or email"
@@ -142,7 +184,15 @@ export const RequestCard = ({ ticket }: RequestCardProps) => {
                     }}
                   />
                   <span className="text-[14px] text-default-500 whitespace-nowrap">or</span>
-                  <Button size="sm" variant="flat" className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap">
+                  <Button 
+                    size="sm" 
+                    variant="flat" 
+                    className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap"
+                    onClick={() => {
+                      onAssign(ticket.id, "MC");
+                      setIsExpanded(false);
+                    }}
+                  >
                     Assign to Me
                   </Button>
                 </div>
