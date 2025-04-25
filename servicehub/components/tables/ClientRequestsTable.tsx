@@ -108,7 +108,7 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
   const showMaintenanceColumns = filteredTickets.some(t => t.type === 'maintenance');
 
   const columns = [
-    { key: "ticket", label: "TICKET", width: 180 },
+    { key: "ticket", label: "CLIENT REQUEST", width: 180 },
     { key: "assignedTo", label: "ASSIGNEE", width: 96, className: "text-center" },
     { key: "subject", label: "SUBJECT", width: 250 },
     { key: "requestType", label: "REQUEST TYPE", width: 165 },
@@ -354,6 +354,7 @@ export const ClientRequestsTable = ({ tickets, showOnHold = false, showClosed = 
                                   className="flex-shrink-0 h-9 text-[14px] whitespace-nowrap"
                                   onClick={() => {
                                     onAssign(ticket.id, "MC");
+                                    setAssigningTicketId(null);
                                   }}
                                 >
                                   Assign to Me
